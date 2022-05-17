@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
 import 'package:tppm_budget_tracker/category/CategoryDropDown.dart';
+import 'package:tppm_budget_tracker/models/globals.dart';
 
 addExpenseAlert(context) {
-  String dropdownValue = 'One';
+  final expenseController = TextEditingController();
+  final amountController = TextEditingController();
+  String? selectedFc = "Other";
   showDialog(
       context: context,
       builder: (context) {
@@ -33,20 +37,22 @@ addExpenseAlert(context) {
                 children: <Widget>[
                   Container(
                     padding: const EdgeInsets.all(8.0),
-                    child: const TextField(
-                      decoration: InputDecoration(
+                    child: TextField(
+                      decoration: const InputDecoration(
                           border: OutlineInputBorder(),
                           hintText: 'Enter expense here',
                           labelText: 'Expense'),
+                          controller: expenseController,
                     ),
                   ),
                   Container(
                     padding: const EdgeInsets.all(8.0),
-                    child: const TextField(
-                      decoration: InputDecoration(
+                    child: TextField(
+                      decoration: const InputDecoration(
                           border: OutlineInputBorder(),
                           hintText: 'Enter amount here',
                           labelText: 'Amount'),
+                      controller: amountController,
                     ),
                   ),
                   Container(
@@ -61,8 +67,17 @@ addExpenseAlert(context) {
                     height: 60,
                     padding: const EdgeInsets.all(8.0),
                     child: ElevatedButton(
-                      onPressed: () {
+                      onPressed: () async {
+                        var box = await Hive.openBox('expenses');
+                        box.add({
+                          'expense': expenseController.text,
+                          'amount': amountController.text,
+                          'category': global_category,
+                        });
+                        print(box.values.toList());
+
                         Navigator.of(context).pop();
+                        global_category = "Other";
                       },
                       style: ElevatedButton.styleFrom(
                         primary: Colors.black,

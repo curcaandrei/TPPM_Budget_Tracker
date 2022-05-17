@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 
+import '../models/globals.dart';
+
 class CategoryDropDown extends StatefulWidget {
   const CategoryDropDown({Key? key}) : super(key: key);
 
@@ -9,9 +11,9 @@ class CategoryDropDown extends StatefulWidget {
 }
 
 class _CategoryDropDownState extends State<CategoryDropDown> {
+
   @override
   Widget build(BuildContext context) {
-    String? selectedFc = "Other";
     // return DropdownButton<String>(
     //   value: dropdownValue,
     //   elevation: 16,
@@ -32,10 +34,17 @@ class _CategoryDropDownState extends State<CategoryDropDown> {
           builder: (context, snapshot) {
             return DropdownButton<String>(
                 hint: Text("Select"),
-                value: selectedFc,
+                value: global_category,
+                elevation: 16,
+                alignment: Alignment.center,
+                style: const TextStyle(color: Colors.deepPurple),
+                underline: Container(
+                  height: 2,
+                  color: Colors.deepPurpleAccent,
+                ),
                 onChanged: (newValue) {
                   setState(() {
-                    selectedFc = newValue.toString();
+                    global_category = newValue.toString();
                   });
                 },
                 items: snapshot.data?.map((fc) =>
@@ -51,7 +60,6 @@ class _CategoryDropDownState extends State<CategoryDropDown> {
   Future<List<DropdownMenuItem<String>>> getCategories() async {
     var box = await Hive.openBox('categories');
     var categories = box.values.toList();
-    print(categories);
     return categories.map((category) => DropdownMenuItem<String>(
       child: Text(category),
       value: category,

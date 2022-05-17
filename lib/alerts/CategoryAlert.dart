@@ -63,6 +63,7 @@ addCategoryAlert(context) {
                           if (!box.values.toList().contains(category.name)){
                             box.add(category.name);
                           }
+                          print(box.values.toList());
                           Navigator.of(context).pop();
                         },
                         style: ElevatedButton.styleFrom(
