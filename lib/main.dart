@@ -1,11 +1,18 @@
+import 'dart:io';
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:tppm_budget_tracker/alerts/ExpenseAlert.dart';
 
 import 'alerts/CategoryAlert.dart';
 
-void main() {
+void main() async {
+  //print current path
+
   runApp(MyApp());
+  Directory appDocDir = await getApplicationDocumentsDirectory();
+  Hive.init(appDocDir.path + 'myapp/data');
 }
 
 class MyApp extends StatelessWidget {

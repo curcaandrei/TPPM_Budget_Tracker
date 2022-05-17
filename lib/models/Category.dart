@@ -1,8 +1,10 @@
-class Category {
+import 'package:hive/hive.dart';
+import 'package:uuid/uuid.dart';
 
-  final int id;
+@HiveType(typeId: 0)
+class Category extends HiveObject {
+  @HiveField(0)
+  String name;
 
-  final String name;
-
-  Category(this.id, this.name);
+  Category(this.name);
 }

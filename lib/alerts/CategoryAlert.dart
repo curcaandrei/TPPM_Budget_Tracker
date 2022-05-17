@@ -1,8 +1,11 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
-import 'package:tppm_budget_tracker/category/CategoryDropDown.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:hive/hive.dart';
+import 'package:tppm_budget_tracker/models/Category.dart';
 
 addCategoryAlert(context) {
+  final categoryController = TextEditingController();
   showDialog(
       context: context,
       builder: (context) {
@@ -33,11 +36,12 @@ addCategoryAlert(context) {
                 children: <Widget>[
                   Container(
                     padding: const EdgeInsets.all(8.0),
-                    child: const TextField(
-                      decoration: InputDecoration(
+                    child: TextField(
+                      decoration: const InputDecoration(
                           border: OutlineInputBorder(),
                           hintText: 'Enter category here',
                           labelText: 'Category'),
+                          controller: categoryController,
                     ),
                   ),
                   Container(
@@ -52,8 +56,25 @@ addCategoryAlert(context) {
                         primary: Colors.black,
                         // fixedSize: Size(250, 50),
                       ),
-                      child: const Text(
-                        "Submit",
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          Category category = Category(categoryController.text);
+                          var box = await Hive.openBox('categories');
+                          if (!box.values.toList().contains(category.name)){
+                            box.add(category.name);
+                          }
+                          Navigator.of(context).pop();
+                        },
+                        style: ElevatedButton.styleFrom(
+                          primary: Colors.black,
+                          // fixedSize: Size(250, 50),
+                        ),
+                        child: const Text(
+                          'Add',
+                          style: TextStyle(
+                            fontSize: 24.0,
+                          ),
+                        ),
                       ),
                     ),
                   ),
