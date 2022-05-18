@@ -69,10 +69,16 @@ addExpenseAlert(context) {
                     child: ElevatedButton(
                       onPressed: () async {
                         var box = await Hive.openBox('expenses');
+                        DateTime now = new DateTime.now();
                         box.add({
                           'expense': expenseController.text,
                           'amount': amountController.text,
                           'category': global_category,
+                          'date': {
+                            'day': now.day,
+                            'month': now.month,
+                            'year': now.year
+                          }
                         });
                         print(box.values.toList());
 

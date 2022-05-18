@@ -36,17 +36,13 @@ class _HomeWidgetState extends State<HomeWidget> {
   var buttonText = 'Click Me!';
   int number = 0;
   int number2 = 0;
+  var _selectedIndex = 0;
+  var items;
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.grey[900],
-        title: const Text('Budget Tracker'),
-        centerTitle: true,
-      ),
-      body: Center(
-          child: Column(
+    List<Widget> _pages = <Widget>[
+      Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
@@ -90,7 +86,38 @@ class _HomeWidgetState extends State<HomeWidget> {
                 ),
               ))
         ],
-      )),
+      ),
+      FutureBuilder<dynamic>(
+          future: getExpenses(),
+          builder: (context, snapshot) {
+            return ListView.builder(
+              itemCount: snapshot.data == null ? 0 : snapshot.data.length,
+              itemBuilder: (context2, index) {
+                items = snapshot.data;
+                final item = items[index];
+
+                return ListTile(
+                  title: Text(item['expense']),
+                  subtitle: Text("Amount: " + item['amount'] + "€" + "     " + "Category: " + item['category']),
+                  trailing: Text(item['date']['day'].toString() +
+                      "/" +
+                      item['date']['month'].toString() +
+                      "/" +
+                      item['date']['year'].toString()),
+                );
+              },
+            );
+          }),
+    ];
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.grey[900],
+        title: const Text('Budget Tracker'),
+        centerTitle: true,
+      ),
+      body: Center(
+          child: _pages.elementAt(_selectedIndex)
+      ),
       bottomNavigationBar: BottomNavigationBar(
         unselectedItemColor: Colors.grey,
         selectedItemColor: Colors.black,
@@ -104,7 +131,20 @@ class _HomeWidgetState extends State<HomeWidget> {
             label: 'Expenses',
           ),
         ],
+        currentIndex: _selectedIndex,
+        onTap: _onItemTapped,
       ),
     );
+  }
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
+
+  Future<List> getExpenses() async {
+    var box = await Hive.openBox('expenses');
+    return box.values.toList();
   }
 }
