@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:tppm_budget_tracker/alerts/ExpenseAlert.dart';
+import 'package:tppm_budget_tracker/alerts/FilterAlert.dart';
+import 'package:tppm_budget_tracker/models/globals.dart';
 
 import 'alerts/CategoryAlert.dart';
 
@@ -36,7 +38,6 @@ class _HomeWidgetState extends State<HomeWidget> {
   var buttonText = 'Click Me!';
   int number = 0;
   int number2 = 0;
-  var _selectedIndex = 0;
   var items;
 
   @override
@@ -87,27 +88,59 @@ class _HomeWidgetState extends State<HomeWidget> {
               ))
         ],
       ),
-      FutureBuilder<dynamic>(
-          future: getExpenses(),
-          builder: (context, snapshot) {
-            return ListView.builder(
-              itemCount: snapshot.data == null ? 0 : snapshot.data.length,
-              itemBuilder: (context2, index) {
-                items = snapshot.data;
-                final item = items[index];
+      Column(
+        children: [
+          Align(
+            alignment: Alignment.bottomCenter,
+              child: ElevatedButton(
+                onPressed: () {
+                  createFilter(context);
+                },
+                style: ElevatedButton.styleFrom(
+                  primary: Colors.black,
+                  textStyle: const TextStyle(
+                    color: Colors.black,
+                    fontSize: 20,
+                  ),
+                ), child: const Text('Add Filter'),
+              )),
+          Expanded(
+              child:       FutureBuilder<dynamic>(
+                  future: getExpenses(),
+                  builder: (context, snapshot) {
+                    return ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: snapshot.data == null ? 0 : snapshot.data.length,
+                      itemBuilder: (context2, index) {
+                        items = snapshot.data;
+                        final item = items[index];
+                        if( index == snapshot.data.length-1) {
+                          filter_category = 'None';
+                          day = 'None';
+                          month = 'None';
+                          year = '';
+                        }
 
-                return ListTile(
-                  title: Text(item['expense']),
-                  subtitle: Text("Amount: " + item['amount'] + "€" + "     " + "Category: " + item['category']),
-                  trailing: Text(item['date']['day'].toString() +
-                      "/" +
-                      item['date']['month'].toString() +
-                      "/" +
-                      item['date']['year'].toString()),
-                );
-              },
-            );
-          }),
+                        var subtitle = "Amount: " + item['amount'].toString() + "€" + "     " + "Category: " + item['category'].toString();
+                        var date = item['date']['day'].toString() +
+                            "/" +
+                            item['date']['month'].toString() +
+                            "/" +
+                            item['date']['year'].toString();
+                        if(item['expense'] == 'No expenses yet'){
+                          subtitle = '';
+                          date = '';
+                        }
+                        return ListTile(
+                          title: Text(item['expense'].toString()),
+                          subtitle:Text(subtitle),
+                          trailing: Text(date),
+                        );
+                      },
+                    );
+                  }))
+        ],
+      ),
     ];
     return Scaffold(
       appBar: AppBar(
@@ -116,7 +149,7 @@ class _HomeWidgetState extends State<HomeWidget> {
         centerTitle: true,
       ),
       body: Center(
-          child: _pages.elementAt(_selectedIndex)
+          child: _pages.elementAt(selectedIndex)
       ),
       bottomNavigationBar: BottomNavigationBar(
         unselectedItemColor: Colors.grey,
@@ -131,7 +164,7 @@ class _HomeWidgetState extends State<HomeWidget> {
             label: 'Expenses',
           ),
         ],
-        currentIndex: _selectedIndex,
+        currentIndex: selectedIndex,
         onTap: _onItemTapped,
       ),
     );
@@ -139,12 +172,53 @@ class _HomeWidgetState extends State<HomeWidget> {
 
   void _onItemTapped(int index) {
     setState(() {
-      _selectedIndex = index;
+      selectedIndex = index;
     });
   }
 
   Future<List> getExpenses() async {
     var box = await Hive.openBox('expenses');
-    return box.values.toList();
+
+    var categoriesBox = await Hive.openBox('categories');
+    if (!categoriesBox.values.toList().contains('Other')) {
+      categoriesBox.add('Other');
+    }
+    if (!categoriesBox.values.toList().contains('None')) {
+      categoriesBox.add('None');
+    }
+
+    var result = box.values.toList();
+    if( day != 'None') {
+      result.removeWhere((item) =>
+      item['date']['week_day'].toString() != day);
+    }
+    print('Day: ' + result.toString());
+    if( month != 'None') {
+      result.removeWhere((item) =>
+      item['date']['month_name'].toString() != month);
+    }
+    if( year != '') {
+      result.removeWhere((item) =>
+      item['date']['year'].toString() != year);
+    }
+    print(filter_category);
+    if( filter_category != 'None') {
+      result.removeWhere((item) =>
+      item['category'].toString() != filter_category);
+    }
+    if (result.isEmpty){
+      result.add({
+        'expense': 'No expenses yet',
+        'amount': 0,
+        'category': 'None',
+        'date': {
+          'day': 0,
+          'month': 0,
+          'year': 0,
+          'week_day': 'None'
+        }
+      });
+    }
+    return result;
   }
 }

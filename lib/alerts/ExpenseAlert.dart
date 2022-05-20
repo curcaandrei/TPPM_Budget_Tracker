@@ -3,7 +3,9 @@ import 'package:hive/hive.dart';
 import 'package:tppm_budget_tracker/category/CategoryDropDown.dart';
 import 'package:tppm_budget_tracker/models/globals.dart';
 
+
 addExpenseAlert(context) {
+
   final expenseController = TextEditingController();
   final amountController = TextEditingController();
   String? selectedFc = "Other";
@@ -55,6 +57,19 @@ addExpenseAlert(context) {
                       controller: amountController,
                     ),
                   ),
+                  Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: <Widget>[
+                        ElevatedButton(
+                          onPressed: () {
+                            _selectDate(context);
+                          },
+                          child: Text("Choose Date"),
+                        )
+                      ],
+                    ),
+                  ),
                   Container(
                     //Add title
                     padding: const EdgeInsets.all(8.0),
@@ -69,21 +84,81 @@ addExpenseAlert(context) {
                     child: ElevatedButton(
                       onPressed: () async {
                         var box = await Hive.openBox('expenses');
-                        DateTime now = new DateTime.now();
+                        DateTime now = selectedDate;
+                        var weekDay = '';
+                        if(now.weekday == 1) {
+                          weekDay = 'Monday';
+                        } else if(now.weekday == 2) {
+                          weekDay = 'Tuesday';
+                        } else if(now.weekday == 3) {
+                          weekDay = 'Wednesday';
+                        } else if(now.weekday == 4) {
+                          weekDay = 'Thursday';
+                        } else if(now.weekday == 5) {
+                          weekDay = 'Friday';
+                        } else if(now.weekday == 6) {
+                          weekDay = 'Saturday';
+                        } else if(now.weekday == 7) {
+                          weekDay = 'Sunday';
+                        }
+
+                        var monthName = '';
+                        switch(now.month){
+                          case 1:
+                            monthName = 'January';
+                            break;
+                          case 2:
+                            monthName = 'February';
+                            break;
+                          case 3:
+                            monthName = 'March';
+                            break;
+                          case 4:
+                            monthName = 'April';
+                            break;
+                          case 5:
+                            monthName = 'May';
+                            break;
+                          case 6:
+                            monthName = 'June';
+                            break;
+                          case 7:
+                            monthName = 'July';
+                            break;
+                          case 8:
+                            monthName = 'August';
+                            break;
+                          case 9:
+                            monthName = 'September';
+                            break;
+                          case 10:
+                            monthName = 'October';
+                            break;
+                          case 11:
+                            monthName = 'November';
+                            break;
+                          case 12:
+                            monthName = 'December';
+                            break;
+                        }
                         box.add({
                           'expense': expenseController.text,
                           'amount': amountController.text,
                           'category': global_category,
                           'date': {
-                            'day': now.day,
-                            'month': now.month,
-                            'year': now.year
+                            'day': selectedDate.day,
+                            'month': selectedDate.month,
+                            'year': selectedDate.year,
+                            'week_day': weekDay,
+                            'month_name': monthName,
                           }
                         });
-                        print(box.values.toList());
-
+                        selectedDate = DateTime.now();
                         Navigator.of(context).pop();
                         global_category = "Other";
+                        day = 'None';
+                        month = 'None';
+                        year = '';
                       },
                       style: ElevatedButton.styleFrom(
                         primary: Colors.black,
@@ -100,4 +175,14 @@ addExpenseAlert(context) {
           ),
         );
       });
+}
+
+_selectDate(BuildContext context) async {
+  final DateTime? selected = await showDatePicker(
+    context: context,
+    initialDate: selectedDate,
+    firstDate: DateTime(2010),
+    lastDate: DateTime(2025),
+  );
+  selectedDate = selected!;
 }

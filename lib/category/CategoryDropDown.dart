@@ -44,6 +44,7 @@ class _CategoryDropDownState extends State<CategoryDropDown> {
                 ),
                 onChanged: (newValue) {
                   setState(() {
+                    filter_category = newValue.toString();
                     global_category = newValue.toString();
                   });
                 },
